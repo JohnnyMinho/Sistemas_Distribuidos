@@ -1,3 +1,4 @@
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,11 +26,11 @@ public class Carro {
         this.passageiros = 0;
     }
 
-    public Carro (String m, int l, String c, int p){
-        this.matricula = m;
-        this.lugares = l;
-        this.condutor = c;
-        this.passageiros = p;
+    public Carro (String matricula, int lugares, String condutor, int passageiros){
+        this.matricula = matricula;
+        this.lugares = lugares;
+        this.condutor = condutor;
+        this.passageiros = passageiros;
         this.l = new ReentrantLock();
     }
 
@@ -46,9 +47,25 @@ public class Carro {
         return this.passageiros;
     }
 
-    public void serialize(DataOutputStream) throws IOException{
-
+    public void serialize(DataOutputStream out) throws IOException {
+        out.write(Byte.parseByte(String.valueOf(matricula.length())));
+        out.write(Byte.parseByte(matricula));
+        out.write(Byte.parseByte(String.valueOf(lugares)));
+        int size = this.lugares;
+        out.write(size);
+        out.flush();
     }
+
+    public static Carro deserialize (DataInputStream in) throws IOException{
+        String matricula = String.valueOf(in.readByte());
+        int lugares = in.readByte();
+        String condutor = String.valueOf(in.readByte());
+        int passageiros = in.readByte();
+        int size = in.readByte();
+        
+        return new Carro(matricula, lugares, condutor, passageiros);
+    }
+
 
 
 
