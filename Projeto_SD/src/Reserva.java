@@ -6,4 +6,6 @@ public class Reserva {
     //Passageiros
     //Data-FIM
 
+    //Serialize
+    //Desirialize
 }
