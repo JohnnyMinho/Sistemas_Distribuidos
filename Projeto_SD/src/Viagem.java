@@ -1,6 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Viagem {
 
@@ -32,44 +33,31 @@ public class Viagem {
         Data = data;
     }
 
-    public void serialize (DataOutputStream out) throws IOException {
-        out.write(Byte.parseByte(String.valueOf(this.getOrigem().length())));
-        out.flush();
-        out.write(Byte.parseByte(this.getOrigem()));
-        out.flush();
-        out.write(Byte.parseByte(String.valueOf(this.getDestino().length())));
-        out.flush();
-        out.write(Byte.parseByte(this.getDestino()));
-        out.flush();
-        
+    public Viagem(String origem_nova, String Destino_nova, String Data_nova){
+        this.Origem = origem_nova;
+        this.Destino = Destino_nova;
+        this.Data = Data_nova;
     }
 
-    // @TODO
-    public static Viagem deserialize (DataInputStream in) throws IOException {
-        String name =  in.readUTF();
-        int age = in.readInt();
-        long phoneNumber = in.readLong();
-        String company = null;
-        if(in.readBoolean()){
-            in.readBoolean();
-            company =  in.readUTF();
-        }
-        int size =  in.readInt();;
-        ArrayList<String> emails = new ArrayList();
-        for(int i = 0; i<size;i++){
-            emails.add(in.readUTF());
-        }
+    public void serialize (DataOutputStream out) throws IOException {
+        out.writeUTF(this.Origem);
+        out.writeUTF(this.Destino);
+        out.writeUTF(this.Data);
+        out.flush();
+    }
 
-        return new Contact(name,age,phoneNumber,company,emails);
+    public static Viagem deserialize (DataInputStream in) throws IOException {
+        String arrived_destiny = in.readUTF();
+        String arrived_origin = in.readUTF();
+        String arrived_data = in.readUTF();
+        return new Viagem(arrived_destiny,arrived_origin,arrived_data);
     }
 
     public String toString () {
         StringBuilder builder = new StringBuilder();
-        builder.append(this.name).append(";");
-        builder.append(this.age).append(";");
-        builder.append(this.phoneNumber).append(";");
-        builder.append(this.company).append(";");
-        builder.append(this.emails.toString());
+        builder.append(this.Destino).append(";");
+        builder.append(this.Origem).append(";");
+        builder.append(this.Data).append(";");
         builder.append("}");
         return builder.toString();
     }
