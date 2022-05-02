@@ -1,4 +1,4 @@
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -11,6 +11,14 @@ public class Server {
 
         ServerSocket serverSocket = new ServerSocket(9999);
         PollManager manager = new PollManager();
+        /*Para facilitar as conexões o server vai ter as mensagens que envia para o cliente com tags
+         * TAGS->
+         * 1 -> Autenticacão Válida Cliente
+         * 2 -> Autenticação Válida Admin
+         * 3 -> Autenticação Inválida
+         * 4 -> Informações (Para alugar uma reserva mostra por exemplo
+         * 5 -> Resultados de uma ação (Ex: Reserva criada com sucesso / Lugar na reserva reservado , etc...)
+         * 6 -> Utilizador Saiu */
 
         while(true){
             Socket socket = serverSocket.accept();
@@ -23,10 +31,11 @@ public class Server {
 
 class PollManager{
 
-
     private HashMap<Integer,Reserva> Reservas;
     private HashMap<String,Carro> Carros;
     private HashMap<Integer, Viagem> Viagens;
+
+
     ReentrantLock l1 = new ReentrantLock();
 
     public PollManager(){
@@ -138,6 +147,7 @@ class ClientHandler implements Runnable{
     private Boolean end_connenction = false;
     private Socket socket;
     private PollManager pollManager;
+    private boolean authenticated = false;
 
     public ClientHandler(Socket newSocket, PollManager newPollManager){
         this.socket = newSocket;
@@ -146,8 +156,44 @@ class ClientHandler implements Runnable{
 
     @Override
     public void run() {
-        while(!end_connenction){
+        try {
+            DataInputStream inclient = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            DataOutputStream outclient = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
+            while(!end_connenction){
+                if(!authenticated) {
+                    String user = inclient.readUTF();
+                    String password = inclient.readUTF();
+                    System.out.println(user);
+                    System.out.println(password);
+                    if(password.equals("0000")){
+                        System.out.println(password);
+                        authenticated = true;
+                        outclient.writeInt(1);
+                        outclient.flush();
+                    }else if(password.equals("1111")){
+                        System.out.println(password);
+                        authenticated = true;
+                        outclient.writeInt(2);
+                        outclient.flush();
+                    }
+                }else if(authenticated){
+                    String menuoption = inclient.readUTF();
+                    switch(menuoption){
+                        case "EXIT":
+                            outclient.writeInt(6);
+                            outclient.flush();
+                            end_connenction = true;
+                            socket.close();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 }

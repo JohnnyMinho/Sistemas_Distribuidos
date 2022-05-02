@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Operations_Logic {
-
+/*
     //Código Operações Lógica
     //Criar reserva - TODOS
     //Ocupar reserva - TODOS
@@ -38,14 +38,12 @@ public class Operations_Logic {
     }
 
     public void ocuparaluguer(Reserva novareserva, Client getidclient){
-
         //carros com lugares disponiveis
         //lugareslivres= this.lugares - this.condutor - this.passageiros
         //apresentar o numero da reserva associado a esses carros
         //cliente escolhe uma reserva, pelo codigo?, faz sentido se um amigo disser q vai na reserva com o codigo tal
 
         this.lista.put(nova.codigoreserva(),nova.clone());//insere nessa reserva
-
 
     }
 
@@ -62,5 +60,5 @@ public class Operations_Logic {
     public void Fecharreserva(getcodigoreserva){
         //colocar lugares disponiveis a 0?
         //se acrescentar essa variavel fica bem mais facil
-    }
+    }*/
 }
