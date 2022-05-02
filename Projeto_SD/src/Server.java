@@ -44,13 +44,25 @@ class PollManager{
         this.Viagens = new HashMap<>();
     }
 
+    public HashMap<Integer,Reserva> getReservas(){
+        return this.Reservas;
+    }
+    public HashMap<String,Carro> getCarros(){
+        return this.Carros;
+    }
+    public HashMap<Integer,Viagem> getViagens(){
+        return this.Viagens;
+    }
     public void updateReservations(Reserva reservation){
         boolean sucess = false;
         l1.lock();
-        for(int i = 0; sucess; i++) {
+        System.out.println("HELLO");
+        for(int i = 0; !(Reservas.containsKey(i)); i++) {
+
             try {
                 if (Reservas.containsKey(i)) { //Temos de ver se a matrícula do Carro já existe basicamente um getMatricula
                     System.out.println("A reserva já existe no sistema");
+                    sucess = true;
                 } else {
                     Reservas.put(i, reservation);
                     System.out.println("Reserva adicionada com sucesso");
@@ -65,12 +77,17 @@ class PollManager{
         boolean sucess = false;
         l1.lock();
         try{
-            for(int i = 0; sucess; i++)
-            if(Reservas.containsKey(i)) { //Temos de ver se a matrícula do Carro já existe basicamente um getMatricula
-                System.out.println("A reserva já existe no sistema");
-            }else{
-                System.out.println("A reserva foi criada com sucesso");
-                Reservas.put(i,reservation);
+            System.out.println("HELLO");
+            for(int i = 0; !(Reservas.containsKey(i-1)); i++) {
+                System.out.println(i);
+                if (Reservas.containsKey(i)) { //Temos de ver se a matrícula do Carro já existe basicamente um getMatricula
+                    System.out.println("A reserva já existe no sistema");
+                    sucess = true;
+                } else {
+                    System.out.println("A reserva foi criada com sucesso");
+                    Reservas.put(i, reservation);
+                    sucess = true;
+                }
             }
         }finally{
             l1.unlock();
@@ -144,6 +161,7 @@ class PollManager{
 
 class ClientHandler implements Runnable{
 
+    private Operations_Logic operações = new Operations_Logic();
     private Boolean end_connenction = false;
     private Socket socket;
     private PollManager pollManager;
@@ -161,7 +179,8 @@ class ClientHandler implements Runnable{
             DataOutputStream outclient = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
 
             while(!end_connenction){
-                if(!authenticated) {
+                if(!authenticated){
+                    System.out.println("AWAITING");
                     String user = inclient.readUTF();
                     String password = inclient.readUTF();
                     System.out.println(user);
@@ -177,16 +196,53 @@ class ClientHandler implements Runnable{
                         outclient.writeInt(2);
                         outclient.flush();
                     }
-                }else if(authenticated){
+                }
+                if(authenticated){
+                    System.out.println("AUTENTICADO");
                     String menuoption = inclient.readUTF();
+                    System.out.println(menuoption);
                     switch(menuoption){
                         case "EXIT":
                             outclient.writeInt(6);
                             outclient.flush();
                             end_connenction = true;
+                            authenticated = false;
                             socket.close();
                             break;
+                        case "1":
+                                boolean sucess = false;
+                                String reservation_data;
+                                Reserva new_reservation = null;
+                                reservation_data = inclient.readUTF();
+                               // System.out.println(reservation_data);
+                                new_reservation = operações.addReserva(reservation_data, pollManager.getCarros());
+                            if(new_reservation != null) {
+                                System.out.println("HELLO3");
+                                pollManager.addReservation(new_reservation);
+                                outclient.writeInt(8);
+                                outclient.flush();
+                            }else{
+                                System.out.println("NULL");
+                                outclient.writeInt(7);
+                                outclient.flush();
+                                String car_data = inclient.readUTF();
+                                System.out.println(car_data);
+                                Carro novo_carro = operações.addCar(car_data);
+                                if(novo_carro != null) {
+                                    pollManager.AddCars(novo_carro);
+                                    outclient.writeInt(8);
+                                    outclient.flush();
+                                }else{
+                                    outclient.writeInt(6);
+                                    outclient.flush();
+                                }
+                            }
+                            System.out.println("HELLO");
+                            authenticated = false;
+                            break;
                         default:
+                            System.out.println("DEFAULT");
+                            authenticated = false;
                             break;
                     }
                 }
