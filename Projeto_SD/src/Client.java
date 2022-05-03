@@ -5,7 +5,7 @@ import java.util.Scanner;
 
 public class Client {
 
-    static String User = "Cliente";
+    static String User = "Cliente2";
     static String password = "0000";
     //boolean shutdown = false;
 
@@ -51,6 +51,7 @@ public class Client {
                     case 3:
                         break;
                     case 4:
+                        menu.printfromserver(servIn);
                         break;
                     case 5:
                         break;
@@ -80,6 +81,7 @@ public class Client {
 class Menu implements Runnable{
 
     DataOutputStream menutoserver;
+
     Scanner input = new Scanner(System.in);
     volatile boolean send_new_command = true;
     boolean exit = false;
@@ -104,6 +106,26 @@ class Menu implements Runnable{
         //System.out.println("Tipo:");
         //System.out.println(typereceived);
         this.tipo = typereceived;
+    }
+
+    public void printfromserver(DataInputStream in){
+        try {
+            boolean fim = false;
+            while(!fim) {
+                System.out.println("CARRO: " + in.readUTF());
+                System.out.println("CONDUTOR: " + in.readUTF());
+                int max = in.readInt();
+                for (int i = 0; i < max; i++) {
+                    System.out.println("PASSAGEIRO: " + in.readUTF());
+                }
+                System.out.println("DATA LIMITE: " + in.readUTF());
+                if(in.readUTF().equals("FIM")){
+                    fim = true;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public int getTipo(){
@@ -179,6 +201,8 @@ class Menu implements Runnable{
                     }
                     break;
                 case "2":
+                    String arrived;
+
                     break;
                 case "3":
                     break;
@@ -202,6 +226,6 @@ class Menu implements Runnable{
             type(0);
         }
         }
-        System.out.println("lol1");
+        System.out.println("Cliente encerrou");
     }
 }
