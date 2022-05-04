@@ -17,11 +17,11 @@ public class Carro {
         private String condutor;
         private int passageiros;
 
-        public Carro (String matricula, int lugares, String condutor, int passageiros){
+        public Carro (String matricula, int lugares, String condutor){
             this.matricula = matricula;
             this.lugares = lugares;
             this.condutor = condutor;
-            this.passageiros = passageiros;
+
         }
 
         public String getMatricula() {
@@ -52,9 +52,8 @@ public class Carro {
             String new_matricula = in.readUTF();
             int new_lugares = in.readInt();
             String new_condutor = in.readUTF();
-            int new_passageiros = in.readInt();
             int size = in.readInt();
 
-            return new Carro(new_matricula, new_lugares, new_condutor, new_passageiros);
+            return new Carro(new_matricula, new_lugares, new_condutor);
         }
 }

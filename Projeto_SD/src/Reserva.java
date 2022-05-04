@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Reserva {
@@ -12,6 +13,7 @@ public class Reserva {
     int MAX_LUGARES;
     String[] Passageiros;
     Date DATA_FIM;
+    Viagem viagem;
     boolean full = false;
     boolean encerrada = false;
 
@@ -50,16 +52,29 @@ public class Reserva {
         return Passageiros;
     }
 
+    public Viagem getViagem(){
+        return this.viagem;
+    }
+
+    public void setViagem(Viagem novaviagem){
+        viagem = novaviagem;
+    }
+
     public void setPassageiros(String passageiros){
-        for(int i = 1; i<MAX_LUGARES; i++){
-            if(Passageiros[i] != null){
-                Passageiros[i] = passageiros;
-                if(i == MAX_LUGARES-1){
-                    setFull(true);
-                    setEncerrada(true);
+        boolean setted  = false;
+       // if(!Arrays.asList(Passageiros).contains(passageiros)) {
+            for (int i = 0; i != MAX_LUGARES - 1 && !setted; i++) {
+                if (Passageiros[i] == null) {
+                    Passageiros[i] = passageiros;
+                    setted = true;
+                    if (i == MAX_LUGARES - 1) {
+                        setFull(true);
+                    }
                 }
             }
-        }
+       // }else{
+         //   System.out.println("PASSAGEIRO JÁ EXISTE NESTA RESERVA");
+       // }
     }
 
     public boolean isFull() {
@@ -86,7 +101,7 @@ public class Reserva {
         this.DATA_FIM = new SimpleDateFormat("dd/MM/yyyy").parse(DATA_FIM);
     }
 
-    public Reserva(String matricula_nova, String condutor_novo, int maxlugares_novos, int passageiros_novos, String datafim_nova) throws ParseException {
+    public Reserva(String matricula_nova, String condutor_novo, int maxlugares_novos, int passageiros_novos, String datafim_nova,String nova_viagem) throws ParseException {
         this.Matricula = matricula_nova;
         this.Condutor = condutor_novo;
         this.MAX_LUGARES = maxlugares_novos;
@@ -96,6 +111,7 @@ public class Reserva {
         }else{
             this.DATA_FIM = null;
         }
+        this.viagem = new Viagem(nova_viagem);
     }
 
     public void serialize(DataOutputStream out) throws IOException{
@@ -103,9 +119,16 @@ public class Reserva {
         out.writeUTF(this.Condutor);
         out.writeInt(this.MAX_LUGARES);
         for(int i = 0; i<Passageiros.length;i++) {
-            out.writeUTF(this.Passageiros[i]);
+            if(this.Passageiros[i] != null) {
+                out.writeUTF(this.Passageiros[i]);
+            }else{
+                out.writeUTF("VAZIO");
+            }
         }
         out.writeUTF(String.valueOf(this.DATA_FIM));
+        out.writeUTF(this.viagem.getTipo());
+        out.writeUTF(String.valueOf(this.encerrada));
+        out.flush();
     }
 
     public static Reserva deserialize(DataInputStream in) throws IOException, ParseException {
@@ -114,8 +137,9 @@ public class Reserva {
         int mlugar = in.readInt();
         int pass = in.readInt();
         String dataf = in.readUTF();
+        String nova_viagem = in.readUTF();
        // Date datafim = new SimpleDateFormat("dd/MM/yyyy").parse(dataf);
-        return new Reserva(mat, cond, mlugar, pass, dataf);
+        return new Reserva(mat, cond, mlugar, pass, dataf, nova_viagem);
     }
 
 }
