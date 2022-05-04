@@ -1,11 +1,9 @@
+import javax.xml.crypto.Data;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Operations_Logic implements Operations {
 
@@ -23,26 +21,30 @@ public class Operations_Logic implements Operations {
     //depois de haver um carro ele coloca la um cliente, e dois podem juntar se mais
     // ==idcliente                ==idcliente
 
-    public Reserva addReserva(String clientInput, HashMap<String, Carro> carros, HashMap<Integer, Reserva> Reservas, String user,ArrayList<Viagem> viagens) throws ParseException {
+    public Reserva addReserva(String clientInput, HashMap<String, Carro> carros, HashMap<Integer, Reserva> Reservas, String user,ArrayList<Viagem> viagens,ArrayList<Date> Datas) throws ParseException {
         String[] tokens = clientInput.split(",");
         int i;
         if (carros.containsKey(tokens[0])) { //Se a matrícula do carro não existir exigimos que este carro seja adicionado ao hashmap de veiculos disponiveis
-            if (carros.get(tokens[0]).getCondutor().equals(user)) { //Se o utilizador não
-                if(!viagens.contains(new Viagem(tokens[2]))){ //Se ainda não existe este tipo de viagem, adicionamos ao arraylist de viagens
-                    viagens.add(new Viagem(tokens[2]));
-                }
-                for (i = 0; i < Reservas.size(); i++) {
-                    if (Reservas.get(i).getMatricula().equals(tokens[0])) {
-                        if (Reservas.get(i).getDATA_FIM().compareTo(new SimpleDateFormat("dd/MM/yyyy").parse(tokens[1])) == 0) {
-                            System.out.println("A RESERVA JÁ ESTÁ MARCADA PARA O MESMO DIA");
-                            return new Reserva(tokens[0], carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, null, tokens[2]);
+            if (!Datas.contains(new SimpleDateFormat("dd/MM/yyyy").parse(tokens[1]))) {
+                if (carros.get(tokens[0]).getCondutor().equals(user)) { //Se o utilizador não
+                    if (!viagens.contains(new Viagem(tokens[2]))) { //Se ainda não existe este tipo de viagem, adicionamos ao arraylist de viagens
+                        viagens.add(new Viagem(tokens[2]));
+                    }
+                    for (i = 0; i < Reservas.size(); i++) {
+                        if (Reservas.get(i).getMatricula().equals(tokens[0])) {
+                            if (Reservas.get(i).getDATA_FIM().compareTo(new SimpleDateFormat("dd/MM/yyyy").parse(tokens[1])) == 0) {
+                                System.out.println("A RESERVA JÁ ESTÁ MARCADA PARA O MESMO DIA");
+                                return new Reserva(tokens[0], carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, null, tokens[2]);
+                            }
                         }
                     }
+                    return new Reserva(tokens[0], carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, tokens[1], tokens[2]); //O utilizador vai ter de enviar uma matrícula, O seu nome de utilizador e a data limite para entrarem pessoas
+                } else {
+                    System.out.println("NÃO É O DONO DA VIATURA");
+                    return new Reserva(null, carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, tokens[1], tokens[2]);
                 }
-                return new Reserva(tokens[0], carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, tokens[1],tokens[2]); //O utilizador vai ter de enviar uma matrícula, O seu nome de utilizador e a data limite para entrarem pessoas
-            } else {
-                System.out.println("NÃO É O DONO DA VIATURA");
-                return new Reserva(null, carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, tokens[1],tokens[2]);
+            }else{
+                return new Reserva(null, carros.get(tokens[0]).getCondutor(), carros.get(tokens[0]).getLugares(), 0, tokens[1], tokens[2]);
             }
         } else {
             return null;
@@ -141,16 +143,56 @@ public class Operations_Logic implements Operations {
         return true;
     }
 
+    public void Passageiros_viagem(DataOutputStream out, HashMap<Integer,Reserva> Reservas, String Viagem, ArrayList<Viagem> viagens) {
+        try {
+            boolean stop = false;
+            System.out.println(" " + (viagens.get(0).getTipo()));
+            System.out.println(" " + viagens.size());
+                for (int i = 0; i < Reservas.size(); i++) {
+                    System.out.println(Reservas.get(i).getViagem().getTipo());
+                    if (Reservas.get(i).getViagem().getTipo().equals(Viagem)) {
+                        String Passageiros[] = Reservas.get(i).getPassageiros();
+                        String Que_Carro = Reservas.get(i).Matricula;
+                        String Data = String.valueOf(Reservas.get(i).getDATA_FIM());
+                        out.writeUTF(Viagem);
+                        out.writeUTF(Que_Carro);
+                        out.writeUTF(Data);
+                        out.flush();
+                        for(int n = 0;!stop ;n++){
+                            if(Passageiros[n] != null){
+                                out.writeUTF(Passageiros[n]);
+                                out.flush();
+                            }else{
+                                stop = true;
+                                out.writeUTF("NO");
+                                out.flush();
+                            }
+                        }
+                    }
+                }
+                out.writeUTF("FIM");
+                out.flush();
+        }
+        catch(IOException e){
+            e.printStackTrace();
+        }
+    }
 
-    public void FecharReserva(String Data, HashMap<Integer,Reserva> Reservas) {
+    public void FecharReserva(String Data, ArrayList<Date> Datas) {
         //colocar lugares disponiveis a 0?
         //se acrescentar essa variavel fica bem mais facil
         try {
-        for(int i = 0; i != Reservas.size();i++){
+            if(Datas.contains(new SimpleDateFormat("dd/MM/yyyy").parse(Data))){
+                System.out.println("ESTA DATA JÁ ESTÁ ENCERRADA");
+            }else{
+                Datas.add(new SimpleDateFormat("dd/MM/yyyy").parse(Data));
+            }
+        /*for(int i = 0; i != Reservas.size();i++){
                 if(Reservas.get(i).getDATA_FIM().compareTo( new SimpleDateFormat("dd/MM/yyyy").parse(Data)) ==0){
                     Reservas.get(i).setEncerrada(true);
                 }
-            }
+            }*/
+
         }catch (ParseException e) {
             e.printStackTrace();
         }

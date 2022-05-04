@@ -70,7 +70,10 @@ public class Client {
                         break;
                     case 10:
                         menu.printerror_reserva();
+                        menu.setChoose_trip(false);
                         break;
+                    case 11:
+                        menu.tripgoers(servIn);
                     default:
                         break;
                 }
@@ -89,6 +92,7 @@ class Menu implements Runnable{
     Scanner input = new Scanner(System.in);
     volatile boolean send_new_command = true;
     boolean exit = false;
+    boolean choose_trip = false;
     boolean choose_reservation = false;
     int tipo = 0;
 
@@ -144,12 +148,49 @@ class Menu implements Runnable{
             e.printStackTrace();
         }
     }
+    public void tripgoers(DataInputStream in){
+        try {
+            int n = 0;
+            boolean fim = false;
+            boolean stop = false;
+            while(!fim) {
+                System.out.println("Viagem TIPO: " + in.readUTF());
+                System.out.println("No Carro: " + in.readUTF());
+                System.out.println("Na Data: " + in.readUTF());
+                    for (int i = 0; !stop; i++) {
+                        String what = in.readUTF();
+                        if(what.equals("NO")){
+                            stop = true;
+                        }else {
+                            System.out.println("O PASSAGEIRO: " + what);
+                        }
+                    }
+                if(in.readUTF().equals("FIM")){
+                    //System.out.println("FIM");
+                    this.choose_reservation = true;
+                    fim = true;
+                }
+                n++;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public void setChoose_reservation(boolean h){
         choose_reservation = h;
     }
 
     public boolean getChoose_Reservation(){
         return this.choose_reservation;
+    }
+
+    public void setChoose_trip(boolean h){
+        choose_trip = h;
+    }
+
+    public boolean getChoose_trip(){
+        return this.choose_trip;
     }
 
     public int getTipo(){
@@ -229,7 +270,9 @@ class Menu implements Runnable{
                     break;
                 case "2":
                     while(getChoose_Reservation()){
-                        System.out.println("CAN'T CHOOSE");
+                        //
+
+                        System.out.print("");
                     }
                     setChoose_reservation(true);
                     try {
@@ -247,6 +290,33 @@ class Menu implements Runnable{
                     }
                     break;
                 case "3":
+                    try{
+                        BufferedReader in2 = new BufferedReader(new InputStreamReader(System.in));
+                        String input_s = "";
+                        System.out.println(in2);
+                        //in2.readLine();
+                        while (input_s == "") {
+                            input_s = in2.readLine();
+                        }
+                        System.out.println(input_s);
+                        menutoserver.writeUTF(input_s);
+                        menutoserver.flush();
+                        int send = -2;
+                        /*while(getChoose_trip()){
+                            System.out.println("CAN'T CHOOSE");
+                        }
+                        setChoose_trip(true);*/
+                        /*System.out.println("SE NAO QUISER VER NENHUMA INFORMAÇÃO DIGITE -1");
+                        while (send == -2) {
+                            //System.out.println("waiting");
+                            send = Integer.parseInt(in.readLine());
+                            System.out.println(send);
+                        }
+                        menutoserver.writeInt(send);
+                        menutoserver.flush();*/
+                    } catch (IOException e){
+                            e.printStackTrace();
+                        }
                     break;
                 case "4":
                         exit = true;

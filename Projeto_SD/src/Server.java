@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -38,7 +39,7 @@ class PollManager{
     private HashMap<Integer,Reserva> Reservas;
     private HashMap<String,Carro> Carros;
     private ArrayList<Viagem> Viagens;
-
+    private ArrayList<Date> Datas;
 
     ReentrantLock l1 = new ReentrantLock();
 
@@ -46,6 +47,7 @@ class PollManager{
         this.Reservas = new HashMap<>();
         this.Carros = new HashMap<>();
         this.Viagens = new ArrayList<>();
+        this.Datas = new ArrayList<>();
     }
 
     public HashMap<Integer,Reserva> getReservas(){
@@ -57,6 +59,8 @@ class PollManager{
     public ArrayList<Viagem> getViagens(){
         return this.Viagens;
     }
+    public ArrayList<Date> getdates(){return this.Datas;}
+
 
     public void updateReservations(Reserva reservation){
         l1.lock();
@@ -211,7 +215,7 @@ class ClientHandler implements Runnable{
                             String reservation_data;
                             Reserva new_reservation = null;
                             reservation_data = inclient.readUTF();
-                            new_reservation = operações.addReserva(reservation_data, pollManager.getCarros(),pollManager.getReservas(),user,pollManager.getViagens());
+                            new_reservation = operações.addReserva(reservation_data, pollManager.getCarros(),pollManager.getReservas(),user,pollManager.getViagens(),pollManager.getdates());
                             if(new_reservation != null) {
                                 if(new_reservation.getDATA_FIM() == null || new_reservation.getMatricula() == null){
                                     outclient.writeInt(8);
@@ -261,6 +265,16 @@ class ClientHandler implements Runnable{
                             outclient.flush();
                             authenticated = false;
                             break;
+                        case "3":
+                            String viagem;
+                            viagem = inclient.readUTF();
+                            outclient.writeInt(11);
+                            outclient.flush();
+                            operações.Passageiros_viagem(outclient,pollManager.getReservas(),viagem,pollManager.getViagens());
+                            outclient.writeInt(8);
+                            outclient.flush();
+                            authenticated = false;
+                            break;
                         case "4":
                             outclient.writeInt(6);
                             outclient.flush();
@@ -270,7 +284,7 @@ class ClientHandler implements Runnable{
                         case "5":
                             String data;
                             data = inclient.readUTF();
-                            operações.FecharReserva(data,pollManager.getReservas());
+                            operações.FecharReserva(data,pollManager.getdates());
                             authenticated = false;
                             outclient.writeInt(8);
                             outclient.flush();
